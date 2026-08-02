@@ -7,6 +7,7 @@
 - `MaiChartManager/Front/src/views/`：Vue 业务界面；资源链接入口位于 `Tools/`。
 - `MaiChartManager.Tests/`：xUnit 测试，包含 Windows 临时目录 Junction 集成测试。
 - `.github/workflows/verify.yml`：无需发布密钥的前端编译和 Windows 后端测试。
+- `.github/workflows/release-preview.yml`：资源链接功能标签触发的 Windows 便携 ZIP 预览发布。
 
 ## 游戏资源链接模块
 

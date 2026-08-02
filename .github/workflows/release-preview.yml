@@ -1,0 +1,78 @@
+name: Release Feature Preview
+
+on:
+  push:
+    tags:
+      - 'resource-junction-manager-*'
+
+permissions:
+  contents: write
+
+jobs:
+  frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout UI submodule
+        run: |
+          git config submodule.MuNet-UI.url https://github.com/MuNET-OSS/MuNET-UI.git
+          git submodule update --init --depth 1 MuNET-UI
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Install and build
+        working-directory: MaiChartManager/Front
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wwwroot
+          path: MaiChartManager/wwwroot
+
+  release:
+    name: Build Windows Preview and Release
+    runs-on: windows-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout build submodules
+        shell: pwsh
+        run: |
+          git config submodule.AquaMai.url https://github.com/MewoLab/AquaMai.git
+          git config submodule.MuConvert.url https://github.com/MuNET-OSS/MuConvert.git
+          git config submodule.SonicAudioTools.url https://github.com/clansty/SonicAudioTools.git
+          git config submodule.XV2-Tools.url https://github.com/MuNET-OSS/XV2-Tools.git
+          git submodule update --init --depth 1 AquaMai MuConvert SonicAudioTools XV2-Tools
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: wwwroot
+          path: MaiChartManager/wwwroot
+      - name: Publish portable Windows build
+        shell: pwsh
+        run: |
+          dotnet publish MaiChartManager/MaiChartManager.csproj -c Release -r win-x64 --self-contained true -o dist/MaiChartManager
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE" }
+          Compress-Archive -Path dist/MaiChartManager/* -DestinationPath MaiChartManager-win-x64.zip
+          $hash = (Get-FileHash MaiChartManager-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  MaiChartManager-win-x64.zip" | Set-Content MaiChartManager-win-x64.zip.sha256 -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MaiChartManager-win-x64
+          path: |
+            MaiChartManager-win-x64.zip
+            MaiChartManager-win-x64.zip.sha256
+      - name: Create preview release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Resource Junction Manager Preview
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            MaiChartManager-win-x64.zip
+            MaiChartManager-win-x64.zip.sha256

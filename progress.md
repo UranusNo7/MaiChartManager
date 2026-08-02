@@ -47,3 +47,21 @@
 - `MaiChartManager.Tests/Services/ResourceJunctionServiceTests.cs`：增加候选选择与路径校验测试。
 - `docs/project-structure.md`、`docs/resource-junction-manager.md`：更新模块职责、目录发现规则和安全边界。
 - 回滚方式：回退本任务提交即可恢复固定路径版本；本轮真实目录验证仅执行只读查询，无需文件系统回滚。
+
+## 2026-08-02 - Task: 使用 GitHub Actions 发布资源链接功能预览版
+
+### What was done
+
+- 增加仅由 `resource-junction-manager-*` 标签触发的预览发布工作流。
+- 工作流在 GitHub 托管 runner 上构建前端和 self-contained Windows x64 程序，生成便携 ZIP 与 SHA-256 校验文件，并上传到 prerelease。
+
+### Testing
+
+- 待标签推送后，以对应 GitHub Actions 运行和 Release 资产下载信息作为正式验证证据。
+
+### Notes
+
+- `.github/workflows/release-preview.yml`：新增功能预览版编译、归档、校验和 Release 上传流程。
+- `docs/project-structure.md`：登记预览发布工作流职责。
+- `progress.md`：追加本轮发布施工和验证记录。
+- 回滚方式：删除本轮创建的 prerelease 与标签，并回退本任务提交；不会影响此前的功能提交。
