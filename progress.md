@@ -127,3 +127,28 @@
 - `progress.md`：追加本轮 Actions、Release、标签和附件校验结果。
 - 发布地址：`https://github.com/UranusNo7/MaiChartManager/releases/tag/resource-junction-manager-preview-20260802-2`。
 - 回滚方式：删除 GitHub prerelease 和远端/本地 `resource-junction-manager-preview-20260802-2` 标签；该操作不回退功能代码。
+
+## 2026-08-02 - Task: 向官方仓库提交资源链接功能并完成审查修复
+
+### What was done
+
+- 从官方最新 `upstream/main` 提交 `77d4c80` 建立独立分支 `feat/resource-junction-manager-official`，只保留功能、测试与用户文档，不包含预览发布工作流、发布标签和本进度日志。
+- 创建官方 PR #71，并按维护者要求在正文披露模型、Codex harness、实际工具、skills 使用情况和用户提示词摘要。
+- 将成立的自动审查反馈合并为单次修复提交 `8336763`：跳过嵌套重解析点、保持固定目录范围不可变、修复直接 `Sinmai_Data` 布局发现、保护自动选择 POST、修复操作后按钮状态，并从 Linux Swagger 重新生成客户端。
+- 测试完成后重新读取维护者与全部审查评论；最新 Sourcery 和 Cubic 检查均成功，Cubic 对修复提交报告 0 个新问题，未再推送代码。
+
+### Testing
+
+- `dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c Debug`：18 项通过，包含带空格和 `&` 的临时路径真实 Junction 测试。
+- `dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c LinuxDebugBackend`：18 项通过，确认测试项目在 Linux 配置下使用 `net10.0`。
+- `pnpm build`：Vue 生产构建通过。
+- `dotnet build MaiChartManager/MaiChartManager.csproj -c LinuxDebugBackend --no-restore`：通过。
+- 本地 Swagger 确认自动选择端点为 POST，`apiGen.ts` 本地生成成功；随后访问无关的远端 AquaMai OpenAPI 时发生 `ECONNRESET`，未影响生成结果。
+- 官方 PR 检查：Sourcery `SUCCESS`；Cubic `SUCCESS`，最新审查为 `0 issues found across 7 files`；PR 状态为 open、mergeable。
+
+### Notes
+
+- `progress.md`：追加官方 PR、审查处理、验证结果和回滚信息。
+- 官方 PR：`https://github.com/MuNET-OSS/MaiChartManager/pull/71`；功能提交 `2cc64eb`，集中审查修复提交 `8336763`。
+- 官方 PR 未改动真实 `F:\Game` 资源；测试只使用系统临时目录中的模拟游戏结构和 Junction。
+- 回滚点：本记录前为 `1a0ebba`；提交后可使用 `git revert <本记录提交>` 仅撤销本次日志，不影响官方 PR 或功能代码。
