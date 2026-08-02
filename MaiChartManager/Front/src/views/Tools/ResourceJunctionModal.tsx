@@ -1,5 +1,5 @@
 import api from '@/client/api';
-import { ResourceJunctionItem, ResourceJunctionStatus } from '@/client/apiGen';
+import { ResourceJunctionOverview, ResourceJunctionStatus } from '@/client/apiGen';
 import { Button, Modal, addToast, showTransactionalDialog } from '@munet/ui';
 import { computed, defineComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -9,23 +9,26 @@ export default defineComponent({
     const { t } = useI18n();
     const show = ref(false);
     const loading = ref(false);
-    const items = ref<ResourceJunctionItem[]>([]);
+    const overview = ref<ResourceJunctionOverview>();
+    const items = computed(() => overview.value?.items ?? []);
 
     const canCreate = computed(() => items.value.some(item => item.status === 'Ready'));
     const canRemove = computed(() => items.value.some(item => item.status === 'AlreadyLinked'));
 
-    const request = async (action: 'status' | 'create' | 'remove') => {
+    const request = async (action: 'auto' | 'status' | 'manual' | 'create' | 'remove') => {
       loading.value = true;
       try {
-        const params = action === 'status'
-          ? undefined
-          : { headers: { 'X-MCM-Local-Action': 'resource-junction' } };
-        const response = action === 'status'
-          ? await api.GetResourceJunctionStatus()
-          : action === 'create'
-            ? await api.CreateResourceJunctions(params)
-            : await api.RemoveResourceJunctions(params);
-        items.value = response.data;
+        const writeParams = { headers: { 'X-MCM-Local-Action': 'resource-junction' } };
+        const response = action === 'auto'
+          ? await api.AutoSelectResourceJunctionSource()
+          : action === 'status'
+            ? await api.GetResourceJunctionStatus()
+            : action === 'manual'
+              ? await api.SelectResourceJunctionSource(writeParams)
+              : action === 'create'
+                ? await api.CreateResourceJunctions(writeParams)
+                : await api.RemoveResourceJunctions(writeParams);
+        overview.value = response.data;
       } catch (error) {
         console.error(error);
         addToast({ message: t('tools.resourceJunction.requestFailed'), type: 'error' });
@@ -33,8 +36,6 @@ export default defineComponent({
         loading.value = false;
       }
     };
-
-    const refresh = () => request('status');
 
     const run = async (action: 'create' | 'remove') => {
       const removing = action === 'remove';
@@ -52,7 +53,8 @@ export default defineComponent({
 
     const trigger = () => {
       show.value = true;
-      refresh();
+      overview.value = undefined;
+      request('auto');
     };
     expose({ trigger });
 
@@ -69,15 +71,36 @@ export default defineComponent({
         v-model:show={show.value}
       >
         <div class="flex flex-col gap-4">
-          <div class="grid gap-2 text-sm">
+          <div class="grid gap-3 text-sm">
             <div>
-              <div class="font-medium">{t('tools.resourceJunction.source')}</div>
-              <div class="break-all op-65">{items.value[0]?.source?.replace(/\\[^\\]+$/, '')}</div>
+              <div class="flex items-center gap-2">
+                <div class="font-medium">{t('tools.resourceJunction.source')}</div>
+                {overview.value?.selectionMode && (
+                  <span class="op-60">
+                    {t(`tools.resourceJunction.selection.${overview.value.selectionMode}`)}
+                  </span>
+                )}
+              </div>
+              <div class="break-all op-65">
+                {overview.value?.sourceRoot ?? t('tools.resourceJunction.noSource')}
+              </div>
             </div>
             <div>
               <div class="font-medium">{t('tools.resourceJunction.target')}</div>
-              <div class="break-all op-65">{items.value[0]?.target?.replace(/\\[^\\]+$/, '')}</div>
+              <div class="break-all op-65">{overview.value?.targetRoot}</div>
             </div>
+            {!!overview.value?.fileCounts?.length && (
+              <div>
+                <div class="font-medium">{t('tools.resourceJunction.fileCounts')}</div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 op-65">
+                  {overview.value.fileCounts.map(item => (
+                    <span key={item.name}>{item.name}: {item.fileCount}</span>
+                  ))}
+                  <span>{t('tools.resourceJunction.total')}: {overview.value.totalFileCount}</span>
+                </div>
+              </div>
+            )}
+            {overview.value?.detail && <div class="text-red-700">{overview.value.detail}</div>}
           </div>
 
           <div class="border border-solid border-gray-200 rounded-md overflow-hidden">
@@ -104,9 +127,13 @@ export default defineComponent({
           </div>
 
           <div class="flex flex-wrap justify-end gap-2">
-            <Button onClick={refresh} ing={loading.value}>
+            <Button onClick={() => request('status')} ing={loading.value}>
               <span class="i-mdi-refresh text-5" />
               {t('tools.resourceJunction.refresh')}
+            </Button>
+            <Button disabled={loading.value} onClick={() => request('manual')}>
+              <span class="i-mdi-folder-open-outline text-5" />
+              {t('tools.resourceJunction.selectSource')}
             </Button>
             <Button
               danger
