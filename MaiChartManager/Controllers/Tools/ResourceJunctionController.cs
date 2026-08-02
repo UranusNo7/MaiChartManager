@@ -48,6 +48,24 @@ public class ResourceJunctionController(ResourceJunctionService service, IDeskto
     }
 
     [HttpPost]
+    public ActionResult<ResourceJunctionOverview> SelectResourceJunctionTarget()
+    {
+        if (StaticSettings.Config.Export) return Forbid();
+        if (Request.Headers[LocalActionHeader] != LocalActionValue) return BadRequest();
+
+        var path = dialogService.PickFolder("Select a target game directory or Package directory");
+        if (path is null) return Ok(service.GetOverview());
+        try
+        {
+            return Ok(service.SelectManualTarget(path));
+        }
+        catch (ArgumentException e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost]
     public ActionResult<ResourceJunctionOverview> CreateResourceJunctions()
     {
         if (StaticSettings.Config.Export) return Forbid();

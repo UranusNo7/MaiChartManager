@@ -478,6 +478,7 @@ tools:
     target: 目标目录
     noSource: 未自动选出源目录，请手动选择
     selectSource: 手动选择源目录
+    selectTarget: 选择目标目录
     fileCounts: 源目录资源文件数
     total: 合计
     refresh: 刷新状态

@@ -130,6 +130,45 @@ public sealed class ResourceJunctionServiceTests : IDisposable
     }
 
     [Fact]
+    public void ManualTargetSelectionIsSessionOnlyAndKeepsDistinctSource()
+    {
+        var configuredTarget = CreateGame("configured-target", [0, 0, 0]);
+        var manualTarget = CreateGame("manual-target", [0, 0, 0]);
+        var sourceGame = CreateGame("source-for-manual-target", [1, 1, 1]);
+        var configuredTargetReads = 0;
+        var service = new ResourceJunctionService(
+            () =>
+            {
+                configuredTargetReads++;
+                return configuredTarget;
+            },
+            () => [sourceGame]);
+        service.AutoSelectSource();
+        var readsBeforeManualSelection = configuredTargetReads;
+
+        var overview = service.SelectManualTarget(manualTarget);
+
+        Assert.Equal(Path.Combine(manualTarget, "Package", "Sinmai_Data", "StreamingAssets", "A000"), overview.TargetRoot);
+        Assert.Equal(Path.Combine(sourceGame, "Package", "Sinmai_Data", "StreamingAssets", "A000"), overview.SourceRoot);
+        Assert.Equal(readsBeforeManualSelection, configuredTargetReads);
+    }
+
+    [Fact]
+    public void SelectingCurrentSourceAsTargetClearsSource()
+    {
+        var configuredTarget = CreateGame("configured-target-clear", [0, 0, 0]);
+        var sourceGame = CreateGame("source-becomes-target", [1, 1, 1]);
+        var service = new ResourceJunctionService(() => configuredTarget, () => [sourceGame]);
+        service.AutoSelectSource();
+
+        var overview = service.SelectManualTarget(sourceGame);
+
+        Assert.Equal(ResourceSourceSelectionMode.None, overview.SelectionMode);
+        Assert.Null(overview.SourceRoot);
+        Assert.NotNull(overview.Detail);
+    }
+
+    [Fact]
     public void ExistingRealDirectoriesAreConflicts()
     {
         if (!OperatingSystem.IsWindows()) return;

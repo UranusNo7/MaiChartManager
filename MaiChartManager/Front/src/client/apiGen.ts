@@ -2771,6 +2771,21 @@ export class Api<
      * No description
      *
      * @tags ResourceJunction
+     * @name SelectResourceJunctionTarget
+     * @request POST:/MaiChartManagerServlet/SelectResourceJunctionTargetApi
+     */
+    SelectResourceJunctionTarget: (params: RequestParams = {}) =>
+      this.request<ResourceJunctionOverview, any>({
+        path: `/MaiChartManagerServlet/SelectResourceJunctionTargetApi`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ResourceJunction
      * @name CreateResourceJunctions
      * @request POST:/MaiChartManagerServlet/CreateResourceJunctionsApi
      */

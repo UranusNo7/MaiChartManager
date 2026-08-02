@@ -15,7 +15,7 @@ export default defineComponent({
     const canCreate = computed(() => items.value.some(item => item.status === 'Ready'));
     const canRemove = computed(() => items.value.some(item => item.status === 'AlreadyLinked'));
 
-    const request = async (action: 'auto' | 'status' | 'manual' | 'create' | 'remove') => {
+    const request = async (action: 'auto' | 'status' | 'manual' | 'manualTarget' | 'create' | 'remove') => {
       loading.value = true;
       try {
         const writeParams = { headers: { 'X-MCM-Local-Action': 'resource-junction' } };
@@ -25,6 +25,8 @@ export default defineComponent({
             ? await api.GetResourceJunctionStatus()
             : action === 'manual'
               ? await api.SelectResourceJunctionSource(writeParams)
+              : action === 'manualTarget'
+                ? await api.SelectResourceJunctionTarget(writeParams)
               : action === 'create'
                 ? await api.CreateResourceJunctions(writeParams)
                 : await api.RemoveResourceJunctions(writeParams);
@@ -72,22 +74,34 @@ export default defineComponent({
       >
         <div class="flex flex-col gap-4">
           <div class="grid gap-3 text-sm">
-            <div>
-              <div class="flex items-center gap-2">
-                <div class="font-medium">{t('tools.resourceJunction.source')}</div>
-                {overview.value?.selectionMode && (
-                  <span class="op-60">
-                    {t(`tools.resourceJunction.selection.${overview.value.selectionMode}`)}
-                  </span>
-                )}
+            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <div class="font-medium">{t('tools.resourceJunction.source')}</div>
+                  {overview.value?.selectionMode && (
+                    <span class="op-60">
+                      {t(`tools.resourceJunction.selection.${overview.value.selectionMode}`)}
+                    </span>
+                  )}
+                </div>
+                <div class="break-all op-65">
+                  {overview.value?.sourceRoot ?? t('tools.resourceJunction.noSource')}
+                </div>
               </div>
-              <div class="break-all op-65">
-                {overview.value?.sourceRoot ?? t('tools.resourceJunction.noSource')}
-              </div>
+              <Button disabled={loading.value} onClick={() => request('manual')}>
+                <span class="i-mdi-folder-open-outline text-5" />
+                {t('tools.resourceJunction.selectSource')}
+              </Button>
             </div>
-            <div>
-              <div class="font-medium">{t('tools.resourceJunction.target')}</div>
-              <div class="break-all op-65">{overview.value?.targetRoot}</div>
+            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+              <div class="min-w-0">
+                <div class="font-medium">{t('tools.resourceJunction.target')}</div>
+                <div class="break-all op-65">{overview.value?.targetRoot}</div>
+              </div>
+              <Button disabled={loading.value} onClick={() => request('manualTarget')}>
+                <span class="i-mdi-folder-open-outline text-5" />
+                {t('tools.resourceJunction.selectTarget')}
+              </Button>
             </div>
             {!!overview.value?.fileCounts?.length && (
               <div>
@@ -130,10 +144,6 @@ export default defineComponent({
             <Button onClick={() => request('status')} ing={loading.value}>
               <span class="i-mdi-refresh text-5" />
               {t('tools.resourceJunction.refresh')}
-            </Button>
-            <Button disabled={loading.value} onClick={() => request('manual')}>
-              <span class="i-mdi-folder-open-outline text-5" />
-              {t('tools.resourceJunction.selectSource')}
             </Button>
             <Button
               danger

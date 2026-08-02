@@ -84,3 +84,26 @@
 - `progress.md`：追加 Actions、Release、标签和附件校验结果。
 - 发布地址：`https://github.com/UranusNo7/MaiChartManager/releases/tag/resource-junction-manager-preview-20260802`。
 - 回滚方式：删除 GitHub prerelease 和远端/本地 `resource-junction-manager-preview-20260802` 标签；该操作不回退功能代码。
+
+## 2026-08-02 - Task: 增加独立目标目录选择并调整目录按钮布局
+
+### What was done
+
+- 将源目录和目标目录选择按钮分别移动到对应目录信息右侧。
+- 目标目录默认使用 MaiChartManager 当前游戏，但允许在资源链接工具会话内独立切换，不修改全局游戏配置，也不触发游戏数据重新加载。
+- 新目标与当前源重合时清空源选择，阻止同目录自链接。
+
+### Testing
+
+- `dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c Debug --no-restore`：16 项通过；新增覆盖会话内目标覆盖、不重新读取当前游戏提供器和源目标重合保护。
+- `pnpm build`：Vue 生产构建通过。
+- `pnpm genClient`：本地 Swagger 客户端生成成功；随后既有远端 AquaMai OpenAPI 地址连接重置，命令最终返回非零。
+
+### Notes
+
+- `MaiChartManager/Services/ResourceJunctionService.cs`：增加会话内目标目录状态与源目标重合保护。
+- `MaiChartManager/Controllers/Tools/ResourceJunctionController.cs`：增加本地原生目标目录选择 API。
+- `MaiChartManager/Front/src/views/Tools/ResourceJunctionModal.tsx`、`src/locales/*.yaml`、`src/client/apiGen.ts`：调整两个目录按钮布局并接入目标选择。
+- `MaiChartManager.Tests/Services/ResourceJunctionServiceTests.cs`：增加独立目标选择测试。
+- `docs/resource-junction-manager.md`：更新目标目录选择、会话边界和界面说明。
+- 回滚方式：回退本任务提交；本轮没有修改真实游戏目录，无需文件系统回滚。

@@ -539,6 +539,7 @@ tools:
     target: Target directory
     noSource: No source was selected automatically. Select one manually
     selectSource: Select source manually
+    selectTarget: Select target directory
     fileCounts: Source resource file counts
     total: Total
     refresh: Refresh status

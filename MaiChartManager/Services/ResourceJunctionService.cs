@@ -53,6 +53,7 @@ public class ResourceJunctionService
     private readonly Func<IEnumerable<string>> candidatePathProvider;
     private readonly bool pathsAreA000Roots;
     private string? selectedSourceRoot;
+    private string? selectedTargetRoot;
     private ResourceSourceSelectionMode selectionMode;
     private IReadOnlyList<ResourceDirectoryFileCount> selectedFileCounts = [];
     private string? selectionDetail;
@@ -129,6 +130,18 @@ public class ResourceJunctionService
         selectedFileCounts = candidate.FileCounts;
         selectionMode = ResourceSourceSelectionMode.Manual;
         selectionDetail = null;
+        return GetOverview();
+    }
+
+    public ResourceJunctionOverview SelectManualTarget(string path)
+    {
+        var targetRoot = TryResolveA000Root(path)
+            ?? throw new ArgumentException("The selected folder is not a valid game root or Package directory.", nameof(path));
+
+        selectedTargetRoot = targetRoot;
+        if (selectedSourceRoot is not null && SamePath(selectedSourceRoot, targetRoot))
+            return ClearSelection(ResourceSourceSelectionMode.None, "The source must differ from the selected target. Select a source directory again.");
+
         return GetOverview();
     }
 
@@ -216,6 +229,7 @@ public class ResourceJunctionService
 
     private string? GetTargetRoot()
     {
+        if (selectedTargetRoot is not null) return selectedTargetRoot;
         var path = targetPathProvider();
         if (string.IsNullOrWhiteSpace(path)) return null;
         if (pathsAreA000Roots) return Directory.Exists(path) ? NormalizePath(path) : null;

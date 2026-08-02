@@ -484,6 +484,7 @@ tools:
     target: 目標目錄
     noSource: 未自動選出來源目錄，請手動選擇
     selectSource: 手動選擇來源目錄
+    selectTarget: 選擇目標目錄
     fileCounts: 來源目錄資源檔案數
     total: 合計
     refresh: 重新整理狀態
