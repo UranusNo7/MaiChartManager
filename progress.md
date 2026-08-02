@@ -152,3 +152,30 @@
 - 官方 PR：`https://github.com/MuNET-OSS/MaiChartManager/pull/71`；功能提交 `2cc64eb`，集中审查修复提交 `8336763`。
 - 官方 PR 未改动真实 `F:\Game` 资源；测试只使用系统临时目录中的模拟游戏结构和 Junction。
 - 回滚点：本记录前为 `1a0ebba`；提交后可使用 `git revert <本记录提交>` 仅撤销本次日志，不影响官方 PR 或功能代码。
+
+## 2026-08-02 - Task: 处理官方 PR 最新审查并完成复审
+
+### What was done
+
+- 按 Sourcery 最新审查集中修复三项问题：前端显示后端目录校验详情、控制器集中执行 Export/本地操作头校验、原生源目录和目标目录选择标题接入三语本地化。
+- 修复控制器辅助函数最初引入的可空泛型返回警告，保持原有 `Forbid` 与 `BadRequest` 行为。
+- 在全部本地验证完成后再次读取维护者和自动审查评论，确认没有新增人工要求，再以单次提交 `5f932b1` 推送官方 PR。
+- Sourcery 将原 inline 建议标记为已由 `5f932b1` 解决；Cubic 对本次 6 个文件报告 `0 issues`，未继续推送代码。
+
+### Testing
+
+- `dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c Debug`：18 项通过，且 `ResourceJunctionController` 不再产生本轮引入的 `CS8604`。
+- `dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c LinuxDebugBackend`：18 项通过。
+- `pnpm build`：Vue 生产构建通过；仅有仓库既有的 Sentry token、UnoCSS 重复引入和大 chunk 提示。
+- `git diff --check`：通过；前端构建未留下 `wwwroot` 待提交变更。
+- 官方 PR 检查：Sourcery `SUCCESS`；Cubic `SUCCESS`，最新审查为 `0 issues found across 6 files`。
+
+### Notes
+
+- `MaiChartManager/Controllers/Tools/ResourceJunctionController.cs`：集中 POST 可用性校验，并使用本地化的原生目录选择标题。
+- `MaiChartManager/Front/src/views/Tools/ResourceJunctionModal.tsx`：从生成的 Fetch 客户端错误负载提取并展示后端校验详情。
+- `MaiChartManager/Locale.resx`、`MaiChartManager/Locale.zh-Hans.resx`、`MaiChartManager/Locale.zh-Hant.resx`：增加源目录和目标目录选择标题的三语资源。
+- `docs/resource-junction-manager.md`：补充目录校验错误展示行为。
+- `progress.md`：追加本轮审查修复、验证和复审结果。
+- 官方 PR：`https://github.com/MuNET-OSS/MaiChartManager/pull/71`；本轮集中修复提交 `5f932b1`。
+- 回滚方式：官方 PR 代码使用 `git revert 5f932b1`；本功能分支日志使用 `git revert <本记录提交>`，两者均不涉及真实 `F:\Game` 资源。
