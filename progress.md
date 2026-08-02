@@ -107,3 +107,23 @@
 - `MaiChartManager.Tests/Services/ResourceJunctionServiceTests.cs`：增加独立目标选择测试。
 - `docs/resource-junction-manager.md`：更新目标目录选择、会话边界和界面说明。
 - 回滚方式：回退本任务提交；本轮没有修改真实游戏目录，无需文件系统回滚。
+
+## 2026-08-02 - Task: 验证并记录独立目标目录版本发布结果
+
+### What was done
+
+- 以标签 `resource-junction-manager-preview-20260802-2` 触发 GitHub Actions，完成独立目标目录选择版本的 Windows x64 预览版发布。
+- 核对标签实际指向、Release 状态、附件大小以及 ZIP 的 GitHub 摘要和校验文件内容。
+
+### Testing
+
+- GitHub Actions `30744707325`：`Build Frontend` 与 `Build Windows Preview and Release` 均成功。
+- GitHub Actions `30744707312` 和 `30744695523`：标签与功能分支在提交 `599395bcdcda83db6c346e2cd1566baba03f26b8` 上的前端构建、Windows 构建和测试均成功。
+- Release 为 prerelease，标签最终指向提交 `599395bcdcda83db6c346e2cd1566baba03f26b8`。
+- `MaiChartManager-win-x64.zip` 已上传，大小 288801934 字节；GitHub 资产摘要与 `.sha256` 文件均为 `b6967812464e45e8fec80e4b5706becbe8e9c1e3fdaa3eb9401b621cf3706a93`。
+
+### Notes
+
+- `progress.md`：追加本轮 Actions、Release、标签和附件校验结果。
+- 发布地址：`https://github.com/UranusNo7/MaiChartManager/releases/tag/resource-junction-manager-preview-20260802-2`。
+- 回滚方式：删除 GitHub prerelease 和远端/本地 `resource-junction-manager-preview-20260802-2` 标签；该操作不回退功能代码。
