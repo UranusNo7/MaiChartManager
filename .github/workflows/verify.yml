@@ -1,0 +1,44 @@
+name: Verify
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout UI submodule
+        run: |
+          git config submodule.MuNet-UI.url https://github.com/MuNET-OSS/MuNET-UI.git
+          git submodule update --init --depth 1 MuNET-UI
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Install and build
+        working-directory: MaiChartManager/Front
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+  backend:
+    name: Build and Test Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout build submodules
+        shell: pwsh
+        run: |
+          git config submodule.AquaMai.url https://github.com/MewoLab/AquaMai.git
+          git config submodule.MuConvert.url https://github.com/MuNET-OSS/MuConvert.git
+          git config submodule.SonicAudioTools.url https://github.com/clansty/SonicAudioTools.git
+          git config submodule.XV2-Tools.url https://github.com/MuNET-OSS/XV2-Tools.git
+          git submodule update --init --depth 1 AquaMai MuConvert SonicAudioTools XV2-Tools
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and test
+        run: dotnet test MaiChartManager.Tests/MaiChartManager.Tests.csproj -c Debug
