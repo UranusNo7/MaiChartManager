@@ -65,3 +65,22 @@
 - `docs/project-structure.md`：登记预览发布工作流职责。
 - `progress.md`：追加本轮发布施工和验证记录。
 - 回滚方式：删除本轮创建的 prerelease 与标签，并回退本任务提交；不会影响此前的功能提交。
+
+## 2026-08-02 - Task: 验证并记录资源链接预览版发布结果
+
+### What was done
+
+- 以标签 `resource-junction-manager-preview-20260802` 触发 GitHub Actions，并完成资源链接功能的 Windows x64 预览版发布。
+- 核对标签实际指向、Release 状态、附件大小及 ZIP 校验值。
+
+### Testing
+
+- GitHub Actions `30744205967`：`Build Frontend` 与 `Build Windows Preview and Release` 均成功。
+- Release 为非草稿 prerelease，标签最终指向提交 `d913c14`。
+- `MaiChartManager-win-x64.zip` 已上传，大小 288799852 字节；GitHub 资产摘要与 `.sha256` 文件均为 `4661c9f8d5e312de07e6623ce2b6296db42404c4ced05a216f9bcbff0ef2ee09`。
+
+### Notes
+
+- `progress.md`：追加 Actions、Release、标签和附件校验结果。
+- 发布地址：`https://github.com/UranusNo7/MaiChartManager/releases/tag/resource-junction-manager-preview-20260802`。
+- 回滚方式：删除 GitHub prerelease 和远端/本地 `resource-junction-manager-preview-20260802` 标签；该操作不回退功能代码。
